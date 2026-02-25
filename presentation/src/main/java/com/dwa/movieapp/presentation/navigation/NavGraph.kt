@@ -7,21 +7,20 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.dwa.movieapp.presentation.moviedetail.MovieDetailScreen
 import com.dwa.movieapp.presentation.moviedetail.MovieDetailViewModel
 import com.dwa.movieapp.presentation.movielist.MovieListScreen
 import com.dwa.movieapp.presentation.movielist.MovieListViewModel
+import kotlinx.serialization.Serializable
 
-object Routes {
-    const val MOVIE_LIST = "movie_list"
-    const val MOVIE_DETAIL = "movie_detail/{movieId}"
+@Serializable
+data object MovieListRoute
 
-    fun movieDetail(movieId: Int): String = "movie_detail/$movieId"
-}
+@Serializable
+data class MovieDetailRoute(val movieId: Int)
 
 private const val TRANSITION_DURATION = 400
 
@@ -29,7 +28,7 @@ private const val TRANSITION_DURATION = 400
 fun MovieNavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = Routes.MOVIE_LIST,
+        startDestination = MovieListRoute,
         enterTransition = {
             slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Start,
@@ -55,22 +54,17 @@ fun MovieNavGraph(navController: NavHostController) {
             ) + fadeOut(animationSpec = tween(TRANSITION_DURATION))
         }
     ) {
-        composable(route = Routes.MOVIE_LIST) {
+        composable<MovieListRoute> {
             val viewModel: MovieListViewModel = hiltViewModel()
             MovieListScreen(
                 viewModel = viewModel,
                 onNavigateToDetail = { movieId ->
-                    navController.navigate(Routes.movieDetail(movieId))
+                    navController.navigate(MovieDetailRoute(movieId))
                 }
             )
         }
 
-        composable(
-            route = Routes.MOVIE_DETAIL,
-            arguments = listOf(
-                navArgument("movieId") { type = NavType.IntType }
-            )
-        ) {
+        composable<MovieDetailRoute> {
             val viewModel: MovieDetailViewModel = hiltViewModel()
             MovieDetailScreen(
                 viewModel = viewModel,
